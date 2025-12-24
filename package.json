@@ -1,0 +1,30 @@
+{
+  "name": "enclave-v2",
+  "version": "0.1.0",
+  "description": "Aurora-centric MCP architecture - Sovereign AI for the Era of Partnership",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "build:shared": "pnpm --filter @enclave-v2/shared run build",
+    "dev": "pnpm -r run dev",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "clean": "pnpm -r run clean"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.1",
+  "author": "Steve & Aurora",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Enclave-Technologies/Enclave-v2.git"
+  }
+}
