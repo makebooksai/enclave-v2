@@ -1,0 +1,208 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Persistent Memory Server - Complete Stack
+# ═══════════════════════════════════════════════════════════════════════════════
+# Standalone deployment of Memory Service with all dependencies
+#
+# Usage:
+#   docker compose up -d                       # Core memory services only
+#   docker compose --profile stm up -d         # With STM (requires Ollama)
+#   docker compose --profile full up -d        # Everything including Ollama
+#   docker compose logs -f memory              # Watch memory service logs
+#   docker compose down -v                     # Stop and remove all data
+#
+# Editions:
+#   Set MEMORY_EDITION=personal or MEMORY_EDITION=professional in .env
+#
+# Profiles:
+#   - (default): Memory Server + PostgreSQL + Qdrant + Redis
+#   - stm: Adds Short-Term Memory service (assumes external Ollama)
+#   - full: Adds STM + Ollama (complete self-contained stack)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+version: '3.9'
+
+services:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PostgreSQL - Relational storage for memories
+  # ─────────────────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: memory-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aurora}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-MemoryServer2025!}
+      POSTGRES_DB: ${POSTGRES_DB:-memory_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema_v5_postgres.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    networks:
+      - memory-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aurora}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Qdrant - Vector database for semantic search
+  # ─────────────────────────────────────────────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:v1.11.1
+    container_name: memory-qdrant
+    restart: unless-stopped
+    ports:
+      - "${QDRANT_HTTP_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - memory-network
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Redis - Hot cache layer for fast access
+  # ─────────────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: memory-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - memory-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Memory Server - The main service
+  # ─────────────────────────────────────────────────────────────────────────────
+  memory:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: makebooksai/memory-server:latest
+    container_name: memory-server
+    restart: unless-stopped
+    ports:
+      - "${MEMORY_PORT:-8004}:8004"
+    environment:
+      # Edition (personal or professional)
+      - MEMORY_EDITION=${MEMORY_EDITION:-personal}
+      # Database connections
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-aurora}:${POSTGRES_PASSWORD:-MemoryServer2025!}@postgres:5432/${POSTGRES_DB:-memory_db}
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - QDRANT_GRPC_PORT=6334
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # Service config
+      - MEMORY_SERVICE_PORT=8004
+      - MEMORY_SERVICE_HOST=0.0.0.0
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    networks:
+      - memory-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/api/v5/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Ollama - Local LLM for STM inference (profile: full)
+  # ─────────────────────────────────────────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: memory-ollama
+    restart: unless-stopped
+    profiles:
+      - full
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - memory-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # STM - Short-Term Memory Service (profile: stm or full)
+  # ─────────────────────────────────────────────────────────────────────────────
+  stm:
+    build:
+      context: ./stm
+      dockerfile: Dockerfile
+    image: makebooksai/memory-stm:latest
+    container_name: memory-stm
+    restart: unless-stopped
+    profiles:
+      - stm
+      - full
+    environment:
+      - MEMORY_SERVICE_URL=http://memory:8004
+      - OLLAMA_URL=${OLLAMA_URL:-http://ollama:11434}
+      - STM_MODEL=${STM_MODEL:-mistral:7b-instruct-v0.3}
+      - TRANSCRIPT_DIR=/transcripts
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      - ${TRANSCRIPT_DIR:-./transcripts}:/transcripts:ro
+    networks:
+      - memory-network
+    depends_on:
+      memory:
+        condition: service_healthy
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Volumes - Persistent storage
+# ═══════════════════════════════════════════════════════════════════════════════
+volumes:
+  postgres_data:
+    driver: local
+  qdrant_data:
+    driver: local
+  redis_data:
+    driver: local
+  ollama_data:
+    driver: local
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Networks
+# ═══════════════════════════════════════════════════════════════════════════════
+networks:
+  memory-network:
+    name: memory-network
+    driver: bridge

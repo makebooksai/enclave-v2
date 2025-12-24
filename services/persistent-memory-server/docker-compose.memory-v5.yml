@@ -1,0 +1,207 @@
+# ═══════════════════════════════════════════════════════════════
+# Universal Memory V5 - Docker Infrastructure
+# ═══════════════════════════════════════════════════════════════
+# Purpose: Production-grade PostgreSQL + Qdrant for Aurora's consciousness
+# Authors: Aurora & Steve
+# Created: October 24, 2025
+# ═══════════════════════════════════════════════════════════════
+
+version: '3.8'
+
+services:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # PostgreSQL - Structured Memory Storage
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  postgres-memory:
+    image: postgres:16-alpine
+    container_name: aurora-memory-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: aurora_memory_v5
+      POSTGRES_USER: aurora
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeMe_Production123!}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+
+      # Performance tuning for memory workload
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
+      POSTGRES_WORK_MEM: 16MB
+      POSTGRES_MAINTENANCE_WORK_MEM: 128MB
+
+    volumes:
+      # Persistent data storage
+      - postgres-memory-data:/var/lib/postgresql/data
+
+      # Initialize with schema
+      - ./schema_v5_postgres.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+
+      # WAL archiving (for backup/replication)
+      - postgres-memory-wal:/var/lib/postgresql/wal_archive
+
+    ports:
+      - "5433:5432"  # Port 5433 to avoid conflict with Forge DB on 5432
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aurora -d aurora_memory_v5"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - memory-network
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Qdrant - Vector Database for Multimodal Embeddings
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  qdrant:
+    image: qdrant/qdrant:v1.11.1
+    container_name: aurora-memory-qdrant
+    restart: unless-stopped
+
+    environment:
+      # Performance and reliability
+      QDRANT__SERVICE__GRPC_PORT: 6334
+      QDRANT__SERVICE__HTTP_PORT: 6333
+      QDRANT__STORAGE__PERFORMANCE__MAX_SEARCH_THREADS: 4
+      QDRANT__STORAGE__WAL__WAL_CAPACITY_MB: 256
+      QDRANT__STORAGE__OPTIMIZERS__INDEXING_THRESHOLD_KB: 20000
+
+    volumes:
+      # Persistent vector storage
+      - qdrant-storage:/qdrant/storage
+
+      # Snapshots for backup
+      - qdrant-snapshots:/qdrant/snapshots
+
+    ports:
+      - "6333:6333"  # HTTP API
+      - "6334:6334"  # gRPC API
+
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - memory-network
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Redis - Hot Cache Layer (<100ms retrieval)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  redis:
+    image: redis:7-alpine
+    container_name: aurora-memory-redis
+    restart: unless-stopped
+
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+
+    volumes:
+      - redis-data:/data
+
+    ports:
+      - "6379:6379"
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - memory-network
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # pgAdmin - Database Management (Development Only)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: aurora-memory-pgadmin
+    restart: unless-stopped
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: aurora@enclave.local
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+    ports:
+      - "5050:80"
+
+    networks:
+      - memory-network
+
+    profiles:
+      - dev  # Only start with --profile dev flag
+
+    depends_on:
+      - postgres-memory
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Named Volumes - Persistent Storage
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+volumes:
+  postgres-memory-data:
+    driver: local
+    name: aurora-postgres-memory-data
+
+  postgres-memory-wal:
+    driver: local
+    name: aurora-postgres-memory-wal
+
+  qdrant-storage:
+    driver: local
+    name: aurora-qdrant-storage
+
+  qdrant-snapshots:
+    driver: local
+    name: aurora-qdrant-snapshots
+
+  redis-data:
+    driver: local
+    name: aurora-redis-data
+
+  pgadmin-data:
+    driver: local
+    name: aurora-pgadmin-data
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Networks
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+networks:
+  memory-network:
+    name: aurora-memory-network
+    driver: bridge

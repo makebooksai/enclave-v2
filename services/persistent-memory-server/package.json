@@ -1,0 +1,13 @@
+{
+  "name": "@enclave/persistent-memory",
+  "version": "1.0.0",
+  "description": "Persistent Memory Agent V4 - UUID-based identity memory architecture",
+  "main": "server.py",
+  "scripts": {
+    "start": "python server.py",
+    "dev": "python server.py"
+  },
+  "keywords": ["memory", "persistence", "sqlite", "clip", "multimodal"],
+  "author": "Steve & Aurora",
+  "license": "MIT"
+}

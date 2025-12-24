@@ -1,0 +1,131 @@
+# ═══════════════════════════════════════════════════════════════
+# Universal Memory V5 - Python Dependencies
+# ═══════════════════════════════════════════════════════════════
+# Production-grade dependencies for Aurora's consciousness
+# ═══════════════════════════════════════════════════════════════
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Core Framework
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic>=2.10.1,<3
+pydantic-settings>=2.6.1,<3
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Database Drivers
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PostgreSQL
+psycopg[binary]==3.2.3
+asyncpg==0.29.0
+sqlalchemy==2.0.36
+alembic==1.14.0
+
+# Redis
+redis==5.2.1
+hiredis==3.0.0
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Vector Database
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+qdrant-client==1.12.1
+
+# Keep ChromaDB for migration support
+chromadb==1.0.21
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Embedding Models
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Text + Image: Jina Embeddings v4
+transformers==4.47.1
+torch==2.5.1
+torchvision==0.20.1
+
+# Fast text embeddings: SBERT
+sentence-transformers==3.3.1
+
+# Audio: CLAP
+laion-clap==1.1.4
+
+# Image utilities
+pillow==11.0.0
+pillow-heif==0.20.0
+
+# Video processing
+opencv-python==4.10.0.84
+ffmpeg-python==0.2.0
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Natural Language Processing
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+spacy==3.8.3
+nltk==3.9.1
+textblob==0.18.0.post0
+
+# Entity extraction
+spacy-entity-linker==1.0.0
+
+# Language detection
+langdetect==1.0.9
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Audio Processing
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+librosa==0.10.2.post1
+soundfile==0.12.1
+audioread==3.0.1
+
+# Speech recognition (optional)
+whisper==1.1.10
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Utilities
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+numpy==2.1.3
+pandas==2.2.3
+python-multipart>=0.0.9
+httpx>=0.27,<0.28
+aiofiles==24.1.0
+python-dateutil==2.9.0.post0
+
+# Compression
+zstandard==0.23.0
+lz4==4.3.3
+
+# Encryption
+cryptography==44.0.0
+
+# Progress bars
+tqdm==4.67.1
+
+# Configuration
+python-dotenv==1.0.1
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Development & Testing
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+black==24.10.0
+ruff==0.8.2
+mypy==1.13.0
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Monitoring & Observability
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+prometheus-client==0.21.0
+opentelemetry-api==1.29.0
+opentelemetry-sdk==1.29.0
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Legacy Dependencies (for migration)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Keep these for migrating from Memory V4
+openai==1.42.0
+mcp==1.2.0
+
+# CLIP (original)
+# git+https://github.com/openai/CLIP.git
+ftfy==6.3.1
+regex==2024.11.6

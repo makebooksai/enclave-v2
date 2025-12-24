@@ -1,0 +1,81 @@
+# ═══════════════════════════════════════════════════════════════
+# Universal Memory V5 - ARM64 (aarch64) Dependencies
+# ═══════════════════════════════════════════════════════════════
+# Optimized for NVIDIA DGX Spark (Grace Blackwell GB10)
+# Removes problematic audio/video dependencies with numpy conflicts
+# ═══════════════════════════════════════════════════════════════
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Core Framework
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic>=2.10.1,<3
+pydantic-settings>=2.6.1,<3
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Database Drivers
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PostgreSQL
+psycopg[binary]==3.2.3
+asyncpg==0.29.0
+sqlalchemy==2.0.36
+alembic==1.14.0
+
+# Redis
+redis==5.2.1
+hiredis==3.0.0
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Vector Database
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+qdrant-client==1.12.1
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Embedding Models (ARM64 compatible)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Text embeddings: SBERT
+sentence-transformers>=2.2.0
+
+# Transformers for model loading
+transformers>=4.40.0
+
+# PyTorch - let it install ARM64 compatible version
+torch>=2.0.0
+
+# Image utilities (optional)
+pillow>=10.0.0
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Natural Language Processing
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+nltk>=3.8.0
+
+# Language detection
+langdetect>=1.0.9
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Utilities
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+numpy>=1.21.0
+pandas>=2.0.0
+python-multipart>=0.0.9
+httpx>=0.27,<0.28
+aiofiles>=23.0.0
+python-dateutil>=2.8.0
+
+# Progress bars
+tqdm>=4.60.0
+
+# Configuration
+python-dotenv>=1.0.0
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Monitoring & Observability
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+prometheus-client>=0.17.0
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# MCP Support
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+mcp>=1.2.0
