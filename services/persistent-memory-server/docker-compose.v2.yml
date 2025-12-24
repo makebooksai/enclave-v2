@@ -1,0 +1,148 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Enclave v2 - Persistent Memory Server (ISOLATED TEST ENVIRONMENT)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Separate from production memory service - uses different ports and containers
+#
+# Usage:
+#   docker compose -f docker-compose.v2.yml up -d           # Start isolated stack
+#   docker compose -f docker-compose.v2.yml logs -f memory  # Watch logs
+#   docker compose -f docker-compose.v2.yml down -v         # Stop and clean
+#
+# Ports (all offset from production to avoid conflicts):
+#   - PostgreSQL: 5434 (prod: 5433)
+#   - Qdrant HTTP: 6335 (prod: 6333)
+#   - Qdrant gRPC: 6336 (prod: 6334)
+#   - Redis: 6380 (prod: 6379)
+#   - Memory API: 8005 (prod: 8004)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+version: '3.9'
+
+services:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PostgreSQL - Relational storage for memories
+  # ─────────────────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: memory-v2-postgres
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: aurora
+      POSTGRES_PASSWORD: MemoryV2Test2025!
+      POSTGRES_DB: memory_v2_db
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - memory_v2_postgres_data:/var/lib/postgresql/data
+      - ./schema_v5_postgres.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    networks:
+      - memory-v2-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aurora"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Qdrant - Vector database for semantic search
+  # ─────────────────────────────────────────────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:v1.11.1
+    container_name: memory-v2-qdrant
+    restart: unless-stopped
+    ports:
+      - "6335:6333"
+      - "6336:6334"
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    volumes:
+      - memory_v2_qdrant_data:/qdrant/storage
+    networks:
+      - memory-v2-network
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Redis - Hot cache layer for fast access
+  # ─────────────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: memory-v2-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6380:6379"
+    volumes:
+      - memory_v2_redis_data:/data
+    networks:
+      - memory-v2-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Memory Server - The main service
+  # ─────────────────────────────────────────────────────────────────────────────
+  memory:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: makebooksai/memory-server-v2:latest
+    container_name: memory-v2-server
+    restart: unless-stopped
+    ports:
+      - "8005:8004"
+    environment:
+      # Edition
+      - MEMORY_EDITION=personal
+      # Database connections
+      - DATABASE_URL=postgresql://aurora:MemoryV2Test2025!@postgres:5432/memory_v2_db
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - QDRANT_GRPC_PORT=6334
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # Service config
+      - MEMORY_SERVICE_PORT=8004
+      - MEMORY_SERVICE_HOST=0.0.0.0
+      - LOG_LEVEL=DEBUG
+    networks:
+      - memory-v2-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/api/v5/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Volumes - Persistent storage (separate from production)
+# ═══════════════════════════════════════════════════════════════════════════════
+volumes:
+  memory_v2_postgres_data:
+    driver: local
+  memory_v2_qdrant_data:
+    driver: local
+  memory_v2_redis_data:
+    driver: local
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Networks (separate from production)
+# ═══════════════════════════════════════════════════════════════════════════════
+networks:
+  memory-v2-network:
+    name: memory-v2-network
+    driver: bridge
