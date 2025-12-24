@@ -16,8 +16,6 @@
 #   - Memory API: 8005 (prod: 8004)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-version: '3.9'
-
 services:
   # ─────────────────────────────────────────────────────────────────────────────
   # PostgreSQL - Relational storage for memories
@@ -92,7 +90,7 @@ services:
   memory:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.v2
     image: makebooksai/memory-server-v2:latest
     container_name: memory-v2-server
     restart: unless-stopped
