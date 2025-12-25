@@ -1,0 +1,24 @@
+{
+  "name": "@enclave/reasoning-mcp",
+  "version": "2.0.0",
+  "description": "Enclave Reasoning MCP - Multi-agent AI dialogue service for meta-cognitive reasoning",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "node test-reasoning.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "nanoid": "^5.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "author": "Steve & Aurora",
+  "license": "MIT"
+}

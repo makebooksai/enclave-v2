@@ -523,6 +523,157 @@ From V1, we carry forward:
 
 ---
 
+## Dynamic MCP Loading (Token Optimization)
+
+### The Problem
+
+Each MCP server's tool definitions are included in the system prompt, consuming tokens on every message. With a growing ecosystem of MCP services, this becomes costly:
+
+- **Memory MCP**: ~500 tokens (always needed)
+- **Objective MCP**: ~1,200 tokens (14 tools)
+- **Playbook MCP**: ~800 tokens (10 tools)
+- **Reasoning MCP**: ~600 tokens (5 tools)
+- **Future MCPs**: Growing token overhead
+
+**Impact**: If all MCPs are always loaded, 3,000+ tokens consumed before any conversation begins.
+
+### The Solution: MCP Manager with Dynamic Loading
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      MCP MANAGER                                 │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  PERMANENT (Always Loaded)          DYNAMIC (Load on Demand)    │
+│  ─────────────────────────          ─────────────────────────   │
+│                                                                  │
+│  ┌─────────────────┐               ┌─────────────────┐          │
+│  │  Memory MCP     │               │  Objective MCP  │ ◄─ Load  │
+│  │  (Identity)     │               │                 │          │
+│  └─────────────────┘               └─────────────────┘          │
+│                                                                  │
+│  ┌─────────────────┐               ┌─────────────────┐          │
+│  │  MCP Manager    │               │  Playbook MCP   │ ◄─ Load  │
+│  │  (Meta-service) │               │                 │          │
+│  └─────────────────┘               └─────────────────┘          │
+│                                                                  │
+│                                    ┌─────────────────┐          │
+│                                    │  Reasoning MCP  │ ◄─ Load  │
+│                                    │                 │          │
+│                                    └─────────────────┘          │
+│                                                                  │
+│                                    ┌─────────────────┐          │
+│                                    │  Makebook MCP   │ ◄─ Load  │
+│                                    │                 │          │
+│                                    └─────────────────┘          │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### MCP Categories
+
+**1. Permanent (Always Loaded)**
+- **Memory MCP**: Core identity and context - must always be available
+- **MCP Manager**: Meta-service for loading/unloading other MCPs
+
+**2. Session-Cached (Load once per session)**
+- Services used frequently during a workflow
+- Example: Objective MCP during capture phase
+
+**3. On-Demand (Load/Unload as needed)**
+- Services used for specific tasks only
+- Example: Reasoning MCP for objective refinement
+- Unloaded after task completion
+
+### MCP Manager Interface
+
+```typescript
+interface MCPManagerTools {
+  // List available MCPs and their status
+  list_mcps(): {
+    name: string;
+    status: 'loaded' | 'available' | 'unavailable';
+    category: 'permanent' | 'session' | 'on_demand';
+    tool_count: number;
+    estimated_tokens: number;
+  }[];
+
+  // Load an MCP service
+  load_mcp(params: {
+    name: string;
+    cache_for_session?: boolean;  // Keep loaded for session duration
+  }): {
+    success: boolean;
+    tools_available: string[];
+  };
+
+  // Unload an MCP service
+  unload_mcp(params: {
+    name: string;
+  }): {
+    success: boolean;
+    tokens_freed: number;
+  };
+
+  // Get current token usage
+  get_token_usage(): {
+    permanent_tokens: number;
+    dynamic_tokens: number;
+    total_tokens: number;
+    available_budget: number;
+  };
+}
+```
+
+### Implementation Approach
+
+**Phase 1: Registry & Awareness**
+- Create MCP registry with metadata (tool count, token estimate)
+- Add `list_mcps` tool to show available services
+- Track which MCPs are currently loaded
+
+**Phase 2: Dynamic Loading**
+- Implement `load_mcp` / `unload_mcp` tools
+- Handle MCP process lifecycle (spawn/kill)
+- Update tool definitions dynamically
+
+**Phase 3: Intelligent Auto-Loading**
+- Aurora learns which MCPs are needed for which tasks
+- Automatic loading based on conversation context
+- Proactive unloading when task completes
+
+### Token Budget Strategy
+
+```yaml
+token_budget:
+  total_system_context: 8000     # Max tokens for system prompt
+  permanent_mcps: 1500           # Reserved for Memory + Manager
+  dynamic_budget: 6500           # Available for dynamic MCPs
+
+loading_rules:
+  - if: workflow == "objective_capture"
+    load: ["objective-mcp"]
+    unload: ["makebook-mcp", "smith-mcp"]
+
+  - if: workflow == "playbook_generation"
+    load: ["playbook-mcp", "reasoning-mcp"]
+    unload: ["objective-mcp"]
+
+  - if: workflow == "build_execution"
+    load: ["makebook-mcp", "smith-mcp"]
+    unload: ["objective-mcp", "playbook-mcp"]
+```
+
+### Benefits
+
+1. **Token Efficiency**: Only pay tokens for what you're using
+2. **Scalability**: Add unlimited MCPs without constant overhead
+3. **Flexibility**: Different workflows load different tools
+4. **Context Budget**: More room for actual conversation
+5. **Clean Architecture**: MCPs truly modular and independent
+
+---
+
 ## Why This Wins
 
 ### For Users

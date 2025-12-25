@@ -1,0 +1,22 @@
+{
+  "name": "@enclave/playbook-mcp",
+  "version": "1.0.0",
+  "description": "Playbook MCP Server - Strategic planning and methodology generation",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "node test-playbook-mcp.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.3.0"
+  }
+}
