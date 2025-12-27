@@ -1,0 +1,91 @@
+{
+  "valid": true,
+  "issues": [],
+  "critical_path": [
+    "TASK-005",
+    "TASK-006",
+    "TASK-007",
+    "TASK-008",
+    "TASK-009",
+    "TASK-010",
+    "TASK-011",
+    "TASK-012",
+    "TASK-013",
+    "TASK-014",
+    "TASK-015",
+    "TASK-016",
+    "TASK-017",
+    "TASK-018",
+    "TASK-019",
+    "TASK-020",
+    "TASK-021",
+    "TASK-022",
+    "TASK-023"
+  ],
+  "parallelization": {
+    "max_parallel": 2,
+    "execution_layers": [
+      [
+        "TASK-001",
+        "TASK-005"
+      ],
+      [
+        "TASK-002",
+        "TASK-006"
+      ],
+      [
+        "TASK-003",
+        "TASK-007"
+      ],
+      [
+        "TASK-004",
+        "TASK-008"
+      ],
+      [
+        "TASK-009"
+      ],
+      [
+        "TASK-010"
+      ],
+      [
+        "TASK-011"
+      ],
+      [
+        "TASK-012"
+      ],
+      [
+        "TASK-013"
+      ],
+      [
+        "TASK-014"
+      ],
+      [
+        "TASK-015"
+      ],
+      [
+        "TASK-016"
+      ],
+      [
+        "TASK-017"
+      ],
+      [
+        "TASK-018"
+      ],
+      [
+        "TASK-019"
+      ],
+      [
+        "TASK-020"
+      ],
+      [
+        "TASK-021"
+      ],
+      [
+        "TASK-022"
+      ],
+      [
+        "TASK-023"
+      ]
+    ]
+  }
+}

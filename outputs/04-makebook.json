@@ -1,0 +1,444 @@
+{
+  "id": "f9fdd363-57ff-41cb-b0e4-bcc60911720b",
+  "title": "Modern Task Management Application Makebook",
+  "objective": "Goal",
+  "source_playbook_id": "29113b3d-324f-4012-a87e-f93f7d1dcbb0",
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "title": "Kickoff Workshop Preparation",
+      "description": "Prepare agenda and materials for kickoff workshop",
+      "phase": "Phase 1: Initiation & Requirements Finalization",
+      "role": "analyst",
+      "classification": "MANUAL",
+      "dependencies": [],
+      "deliverables": [
+        "workshop_agenda.docx"
+      ],
+      "acceptance_criteria": [
+        "Agenda approved by product lead"
+      ],
+      "estimated_complexity": "simple"
+    },
+    {
+      "id": "TASK-002",
+      "title": "Kickoff Workshop Execution",
+      "description": "Conduct kickoff workshop with product and engineering leads",
+      "phase": "Phase 1: Initiation & Requirements Finalization",
+      "role": "architect",
+      "classification": "MANUAL",
+      "dependencies": [
+        "TASK-001"
+      ],
+      "deliverables": [
+        "workshop_notes.md"
+      ],
+      "acceptance_criteria": [
+        "All requirements captured and signed off"
+      ],
+      "estimated_complexity": "moderate"
+    },
+    {
+      "id": "TASK-003",
+      "title": "Requirements Documentation",
+      "description": "Finalize functional and non‑functional requirements",
+      "phase": "Phase 1: Initiation & Requirements Finalization",
+      "role": "analyst",
+      "classification": "MANUAL",
+      "dependencies": [
+        "TASK-002"
+      ],
+      "deliverables": [
+        "requirements_spec.pdf"
+      ],
+      "acceptance_criteria": [
+        "Requirements spec reviewed and approved"
+      ],
+      "estimated_complexity": "simple"
+    },
+    {
+      "id": "TASK-004",
+      "title": "Acceptance Criteria & Test Matrix Definition",
+      "description": "Define acceptance criteria and test matrix for all features",
+      "phase": "Phase 1: Initiation & Requirements Finalization",
+      "role": "qa",
+      "classification": "MANUAL",
+      "dependencies": [
+        "TASK-003"
+      ],
+      "deliverables": [
+        "test_matrix.xlsx"
+      ],
+      "acceptance_criteria": [
+        "Test matrix reviewed by stakeholders"
+      ],
+      "estimated_complexity": "moderate"
+    },
+    {
+      "id": "TASK-005",
+      "title": "OAuth Provider Integration Planning",
+      "description": "Plan integration of Google and GitHub OAuth providers",
+      "phase": "Phase 2: Authentication & Core Infrastructure",
+      "role": "architect",
+      "classification": "AUTO",
+      "dependencies": [],
+      "deliverables": [
+        "integration_plan.md"
+      ],
+      "acceptance_criteria": [
+        "Plan approved by security team"
+      ],
+      "estimated_complexity": "simple"
+    },
+    {
+      "id": "TASK-006",
+      "title": "Configure Token Storage & Session Management",
+      "description": "Implement token storage and session handling",
+      "phase": "Phase 2: Authentication & Core Infrastructure",
+      "role": "developer",
+      "classification": "AUTO",
+      "dependencies": [
+        "TASK-005"
+      ],
+      "deliverables": [
+        "token_service.js"
+      ],
+      "acceptance_criteria": [
+        "Tokens persist correctly across sessions"
+      ],
+      "estimated_complexity": "moderate"
+    },
+    {
+      "id": "TASK-007",
+      "title": "Deploy Backend Services to Staging",
+      "description": "Deploy backend services to staging environment",
+      "phase": "Phase 2: Authentication & Core Infrastructure",
+      "role": "devops",
+      "classification": "AUTO",
+      "dependencies": [
+        "TASK-006"
+      ],
+      "deliverables": [
+        "staging_deploy.sh"
+      ],
+      "acceptance_criteria": [
+        "Service reachable and logs show no errors"
+      ],
+      "estimated_complexity": "moderate"
+    },
+    {
+      "id": "TASK-008",
+      "title": "Implement Role‑Based Access Control Scaffolding",
+      "description": "Create RBAC scaffolding for roles and permissions",
+      "phase": "Phase 2: Authentication & Core Infrastructure",
+      "role": "developer",
+      "classification": "HYBRID",
+      "dependencies": [
+        "TASK-007"
+      ],
+      "deliverables": [
+        "rbac_initializer.js"
+      ],
+      "acceptance_criteria": [
+        "RBAC functions accessible and unit tested"
+      ],
+      "estimated_complexity": "complex"
+    },
+    {
+      "id": "TASK-009",
+      "title": "Design Kanban Board Layout",
+      "description": "Design responsive board layout for desktop and mobile",
+      "phase": "Phase 3: Kanban Board Development",
+      "role": "designer",
+      "classification": "MANUAL",
+      "dependencies": [
+        "TASK-008"
+      ],
+      "deliverables": [
+        "board_layout mockup.png"
+      ],
+      "acceptance_criteria": [
+        "Design approved by product owner"
+      ],
+      "estimated_complexity": "simple"
+    },
+    {
+      "id": "TASK-010",
+      "title": "Implement Drag‑and‑Drop Interactions",
+      "description": "Implement drag‑and‑drop using UI library",
+      "phase": "Phase 3: Kanban Board Development",
+      "role": "developer",
+      "classification": "AUTO",
+      "dependencies": [
+        "TASK-009"
+      ],
+      "deliverables": [
+        "dragdrop_component.jsx"
+      ],
+      "acceptance_criteria": [
+        "Drag‑and‑drop works across columns"
+      ],
+      "estimated_complexity": "moderate"
+    },
+    {
+      "id": "TASK-011",
+      "title": "Integrate Live Updates via WebSocket/GraphQL",
+      "description": "Integrate WebSocket or GraphQL subscriptions for live board updates",
+      "phase": "Phase 3: Kanban Board Development",
+      "role": "developer",
+      "classification": "HYBRID",
+      "dependencies": [
+        "TASK-010"
+      ],
+      "deliverables": [
+        "live_update_service.js"
+      ],
+      "acceptance_criteria": [
+        "Live updates reflect changes within 200ms"
+      ],
+      "estimated_complexity": "complex"
+    },
+    {
+      "id": "TASK-012",
+      "title": "Cross‑Browser & Device Compatibility Testing",
+      "description": "Conduct cross‑browser and device compatibility testing",
+      "phase": "Phase 3: Kanban Board Development",
+      "role": "qa",
+      "classification": "MANUAL",
+      "dependencies": [
+        "TASK-011"
+      ],
+      "deliverables": [
+        "compatibility_report.pdf"
+      ],
+      "acceptance_criteria": [
+        "No critical issues across Chrome, Firefox, Safari, Edge, mobile"
+      ],
+      "estimated_complexity": "simple"
+    },
+    {
+      "id": "TASK-013",
+      "title": "Load Testing with 100 Concurrent Users",
+      "description": "Perform load testing with 100 concurrent users",
+      "phase": "Phase 3: Kanban Board Development",
+      "role": "devops",
+      "classification": "AUTO",
+      "dependencies": [
+        "TASK-012"
+      ],
+      "deliverables": [
+        "load_test_results.json"
+      ],
+      "acceptance_criteria": [
+        "Throughput >= 80 req/s, error rate < 1%"
+      ],
+      "estimated_complexity": "moderate"
+    },
+    {
+      "id": "TASK-014",
+      "title": "Create RESTful Endpoints for CRUD",
+      "description": "Create RESTful endpoints for create, read, update, delete tasks",
+      "phase": "Phase 4: Task CRUD & Data Management",
+      "role": "developer",
+      "classification": "AUTO",
+      "dependencies": [
+        "TASK-013"
+      ],
+      "deliverables": [
+        "api_spec.yaml"
+      ],
+      "acceptance_criteria": [
+        "All CRUD endpoints return 200/201/204 as appropriate"
+      ],
+      "estimated_complexity": "moderate"
+    },
+    {
+      "id": "TASK-015",
+      "title": "Unit and Integration Tests for Endpoints",
+      "description": "Implement unit and integration tests for each endpoint",
+      "phase": "Phase 4: Task CRUD & Data Management",
+      "role": "qa",
+      "classification": "MANUAL",
+      "dependencies": [
+        "TASK-014"
+      ],
+      "deliverables": [
+        "test_suite coverage.xml"
+      ],
+      "acceptance_criteria": [
+        "Test coverage >= 85% and all tests pass"
+      ],
+      "estimated_complexity": "simple"
+    },
+    {
+      "id": "TASK-016",
+      "title": "Database Persistence with Indexing",
+      "description": "Persist tasks in chosen database with proper indexing",
+      "phase": "Phase 4: Task CRUD & Data Management",
+      "role": "developer",
+      "classification": "AUTO",
+      "dependencies": [
+        "TASK-015"
+      ],
+      "deliverables": [
+        "db_schema.sql"
+      ],
+      "acceptance_criteria": [
+        "Queries retrieve tasks within 100ms"
+      ],
+      "estimated_complexity": "moderate"
+    },
+    {
+      "id": "TASK-017",
+      "title": "Add Validation for Due Dates, Priorities, Labels",
+      "description": "Add validation for due dates, priorities, and labels",
+      "phase": "Phase 4: Task CRUD & Data Management",
+      "role": "analyst",
+      "classification": "MANUAL",
+      "dependencies": [
+        "TASK-016"
+      ],
+      "deliverables": [
+        "validation_rules.md"
+      ],
+      "acceptance_criteria": [
+        "Invalid inputs rejected with proper error messages"
+      ],
+      "estimated_complexity": "simple"
+    },
+    {
+      "id": "TASK-018",
+      "title": "Run Automated Test Suite",
+      "description": "Run automated test suite and address failures",
+      "phase": "Phase 4: Task CRUD & Data Management",
+      "role": "qa",
+      "classification": "AUTO",
+      "dependencies": [
+        "TASK-017"
+      ],
+      "deliverables": [
+        "ci_report.html"
+      ],
+      "acceptance_criteria": [
+        "All tests pass on CI"
+      ],
+      "estimated_complexity": "moderate"
+    },
+    {
+      "id": "TASK-019",
+      "title": "Page Asset Optimization",
+      "description": "Optimize page assets to achieve <2 s load time",
+      "phase": "Phase 5: Performance, Security & Accessibility",
+      "role": "devops",
+      "classification": "AUTO",
+      "dependencies": [
+        "TASK-018"
+      ],
+      "deliverables": [
+        "optimized_assets.zip"
+      ],
+      "acceptance_criteria": [
+        "Page load <2s on 3G"
+      ],
+      "estimated_complexity": "moderate"
+    },
+    {
+      "id": "TASK-020",
+      "title": "Enforce HTTPS and Secure OAuth Token Handling",
+      "description": "Enforce HTTPS, secure OAuth token handling, and password hashing",
+      "phase": "Phase 5: Performance, Security & Accessibility",
+      "role": "security engineer",
+      "classification": "MANUAL",
+      "dependencies": [
+        "TASK-019"
+      ],
+      "deliverables": [
+        "security_config.yaml"
+      ],
+      "acceptance_criteria": [
+        "All external calls over HTTPS, tokens stored securely"
+      ],
+      "estimated_complexity": "complex"
+    },
+    {
+      "id": "TASK-021",
+      "title": "WCAG 2.1 AA Accessibility Audit",
+      "description": "Conduct WCAG 2.1 AA accessibility audit",
+      "phase": "Phase 5: Performance, Security & Accessibility",
+      "role": "analyst",
+      "classification": "MANUAL",
+      "dependencies": [
+        "TASK-020"
+      ],
+      "deliverables": [
+        "accessibility_report.pdf"
+      ],
+      "acceptance_criteria": [
+        "No AA violations",
+        "Keyboard navigation fully functional"
+      ],
+      "estimated_complexity": "moderate"
+    },
+    {
+      "id": "TASK-022",
+      "title": "Run Security Scans and Remediate",
+      "description": "Run security scans and remediate findings",
+      "phase": "Phase 5: Performance, Security & Accessibility",
+      "role": "devops",
+      "classification": "AUTO",
+      "dependencies": [
+        "TASK-021"
+      ],
+      "deliverables": [
+        "scan_results.json"
+      ],
+      "acceptance_criteria": [
+        "All high severity findings resolved"
+      ],
+      "estimated_complexity": "complex"
+    },
+    {
+      "id": "TASK-023",
+      "title": "Finalize User Onboarding Documentation",
+      "description": "Finalize user onboarding documentation and training materials",
+      "phase": "Phase 5: Performance, Security & Accessibility",
+      "role": "designer",
+      "classification": "MANUAL",
+      "dependencies": [
+        "TASK-022"
+      ],
+      "deliverables": [
+        "onboarding_guide.pdf"
+      ],
+      "acceptance_criteria": [
+        "Documentation reviewed and approved by product team"
+      ],
+      "estimated_complexity": "simple"
+    }
+  ],
+  "metadata": {
+    "total_tasks": 23,
+    "auto_tasks": 10,
+    "hybrid_tasks": 2,
+    "manual_tasks": 11,
+    "phases": [
+      "Phase 1: Initiation & Requirements Finalization",
+      "Phase 2: Authentication & Core Infrastructure",
+      "Phase 3: Kanban Board Development",
+      "Phase 4: Task CRUD & Data Management",
+      "Phase 5: Performance, Security & Accessibility"
+    ],
+    "roles": [
+      "analyst",
+      "architect",
+      "qa",
+      "developer",
+      "devops",
+      "designer",
+      "security engineer"
+    ],
+    "model_used": "vllm/cybermotaz/nemotron3-nano-nvfp4-w4a16",
+    "generation_time_ms": 90966
+  },
+  "created_at": "2025-12-25T02:44:38.545Z"
+}

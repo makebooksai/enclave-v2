@@ -31,11 +31,17 @@ import path from 'path';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CONFIG = {
-  provider: process.env.LLM_PROVIDER || 'ollama',
-  model: process.env.LLM_MODEL || 'nemotron-mini:4b',
-  baseUrl: process.env.LLM_BASE_URL || 'http://localhost:11434',
+  // Provider: 'ollama' or 'vllm'
+  provider: process.env.LLM_PROVIDER || 'vllm',
+  // Model name - for vLLM use the HuggingFace model name
+  model: process.env.LLM_MODEL || 'cybermotaz/nemotron3-nano-nvfp4-w4a16',
+  // Base URL - vLLM uses port 8000, Ollama uses 11434
+  baseUrl: process.env.LLM_BASE_URL || 'http://spark-de77.local:8000',
   outputDir: path.join(process.cwd(), 'outputs'),
-  timeout: 180000, // 3 minutes
+  timeout: 600000, // 10 minutes - generous for large model
+  // Context window and output token settings
+  maxTokens: 64000,    // 64K max output tokens
+  maxModelLen: 131072, // 131K context window (vLLM default for this model)
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -175,7 +181,7 @@ async function saveArtifact(filename: string, data: unknown): Promise<void> {
 }
 
 async function callLLM(prompt: string, systemPrompt?: string): Promise<string> {
-  const messages = [];
+  const messages: Array<{ role: string; content: string }> = [];
   if (systemPrompt) {
     messages.push({ role: 'system', content: systemPrompt });
   }
@@ -185,29 +191,55 @@ async function callLLM(prompt: string, systemPrompt?: string): Promise<string> {
   const timeoutId = setTimeout(() => controller.abort(), CONFIG.timeout);
 
   try {
-    const response = await fetch(`${CONFIG.baseUrl}/api/chat`, {
+    // Use vLLM's OpenAI-compatible API or Ollama's native API
+    const isVLLM = CONFIG.provider === 'vllm';
+    const endpoint = isVLLM
+      ? `${CONFIG.baseUrl}/v1/chat/completions`
+      : `${CONFIG.baseUrl}/api/chat`;
+
+    const requestBody = isVLLM
+      ? {
+          model: CONFIG.model,
+          messages,
+          temperature: 0.3,
+          max_tokens: CONFIG.maxTokens,
+          stream: false,
+        }
+      : {
+          model: CONFIG.model,
+          messages,
+          stream: false,
+          options: {
+            temperature: 0.3,
+            num_ctx: 131072,
+            num_predict: 32768,
+          },
+        };
+
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: CONFIG.model,
-        messages,
-        stream: false,
-        options: {
-          temperature: 0.3,
-          num_predict: 8000,
-        },
-      }),
+      body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`LLM error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`LLM error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
-    const data = await response.json() as { message: { content: string } };
-    return data.message.content;
+    // Parse response based on provider format
+    if (isVLLM) {
+      const data = await response.json() as {
+        choices: Array<{ message: { content: string } }>
+      };
+      return data.choices[0].message.content;
+    } else {
+      const data = await response.json() as { message: { content: string } };
+      return data.message.content;
+    }
   } catch (error) {
     clearTimeout(timeoutId);
     throw error;
@@ -217,6 +249,12 @@ async function callLLM(prompt: string, systemPrompt?: string): Promise<string> {
 function parseJSON<T>(content: string): T | null {
   try {
     let jsonStr = content.trim();
+
+    // Handle Nemotron's </think> tag - extract content after it
+    const thinkEndMatch = jsonStr.match(/<\/think>\s*([\s\S]*)/);
+    if (thinkEndMatch) {
+      jsonStr = thinkEndMatch[1].trim();
+    }
 
     // Handle markdown code blocks
     const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -542,71 +580,29 @@ async function step4_GenerateMakebook(objective: Objective, playbook: Playbook):
 
   log('MAKEBOOK', 'Transforming playbook into executable tasks...');
 
-  const systemPrompt = `You are an expert project planner generating detailed Makebooks.
+  const systemPrompt = `You are a project planner. Output valid JSON only. No markdown.`;
 
-CRITICAL: Output ONLY valid JSON. No markdown, no code blocks, no explanation.
-Start your response with { and end with }
+  // Build a concise phase summary
+  const phaseSummary = playbook.phases.map(p => `${p.name}: ${p.steps.join(', ')}`).join('\n');
 
-Classification Guidelines:
-- AUTO: Fully automatable by AI (code generation, boilerplate, simple CRUD, config files)
-- HYBRID: Requires AI + human collaboration (complex design, integration, testing with judgment)
-- MANUAL: Human-only tasks (stakeholder decisions, external coordination, approval, creative design)
+  const userPrompt = `Create a JSON Makebook from this playbook.
 
-Role Guidelines:
-- architect: System design, API contracts, database schemas, technical decisions
-- developer: Implementation, coding, debugging, unit tests
-- designer: UI/UX design, user experience, visual design
-- analyst: Requirements, research, data analysis, documentation
-- devops: Infrastructure, deployment, CI/CD, monitoring
-- qa: Testing, quality assurance, validation, test automation
+Objective: ${objective.intent}
 
-Complexity Guidelines:
-- trivial: < 1 hour, simple config or copy-paste
-- simple: 1-4 hours, straightforward implementation
-- moderate: 4-8 hours, requires some design thinking
-- complex: 1-3 days, significant implementation effort
-- epic: 3+ days, major feature or system component`;
+Phases:
+${phaseSummary}
 
-  const userPrompt = `Transform this playbook into an executable Makebook:
+Output this exact JSON structure:
+{"title":"${objective.title} Makebook","tasks":[{"id":"TASK-001","title":"Task title","description":"What to do","phase":"Phase name","role":"developer","classification":"AUTO","dependencies":[],"deliverables":["output.ts"],"acceptance_criteria":["Done when..."],"estimated_complexity":"moderate"}]}
 
-## Objective
-${objective.intent}
+Rules:
+- Generate 15-25 tasks covering all phases
+- classification: AUTO (code generation), HYBRID (AI+human), MANUAL (human only)
+- role: architect, developer, designer, analyst, devops, qa
+- complexity: trivial, simple, moderate, complex, epic
+- Add realistic dependencies (e.g. TASK-002 depends on TASK-001)
 
-## Playbook
-${JSON.stringify(playbook, null, 2)}
-
-## Required Output
-{
-  "title": "Makebook title",
-  "objective": "Brief objective statement",
-  "tasks": [
-    {
-      "id": "TASK-001",
-      "title": "Clear, action-oriented task title",
-      "description": "Detailed 50-100 word specification including: purpose, approach, key deliverables, and acceptance criteria",
-      "phase": "Phase name from playbook",
-      "role": "architect|developer|designer|analyst|devops|qa",
-      "classification": "AUTO|HYBRID|MANUAL",
-      "dependencies": ["TASK-XXX"],
-      "deliverables": ["Specific output file or artifact"],
-      "acceptance_criteria": ["Measurable completion criteria"],
-      "estimated_complexity": "trivial|simple|moderate|complex|epic"
-    }
-  ],
-  "metadata": {
-    "total_tasks": 0,
-    "auto_tasks": 0,
-    "hybrid_tasks": 0,
-    "manual_tasks": 0,
-    "phases": ["phase list"],
-    "roles": ["role list"]
-  }
-}
-
-Generate 15-25 tasks covering ALL phases.
-Ensure realistic dependency chains.
-Balance AUTO/HYBRID/MANUAL classifications.
-Pure JSON output only.`;
+Output JSON only:`;
 
   const startTime = Date.now();
   const response = await callLLM(userPrompt, systemPrompt);
@@ -614,11 +610,15 @@ Pure JSON output only.`;
 
   log('MAKEBOOK', `LLM response time: ${duration}ms`);
 
+  // Save raw response for debugging
+  await saveArtifact('04-makebook-raw.txt', response);
+
   let parsed = parseJSON<Partial<Makebook>>(response);
 
   if (!parsed) {
     log('MAKEBOOK', 'Warning: Initial parse failed, attempting recovery...');
-    log('MAKEBOOK', `Response preview: ${response.substring(0, 300)}...`);
+    log('MAKEBOOK', `Response length: ${response.length} chars`);
+    log('MAKEBOOK', `Response preview: ${response.substring(0, 500)}...`);
 
     // Try to find tasks array directly
     const tasksMatch = response.match(/"tasks"\s*:\s*\[([\s\S]*?)\]/);

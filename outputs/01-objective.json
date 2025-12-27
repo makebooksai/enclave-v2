@@ -1,82 +1,62 @@
 {
-  "id": "9178596a-a8dd-4042-9c3e-abb4c613d6f4",
-  "title": "Team Task Management Application",
-  "summary": "Develop a modern web application enabling small development teams to collaborate effectively on projects, featuring real-time updates, Kanban boards, and comprehensive task management functionalities.",
-  "intent": "To provide a user-friendly and efficient task management solution for small development teams, fostering collaboration and improving project organization.",
-  "context": "Small development teams (5-20 people) require a centralized platform for task assignment, tracking progress, and facilitating communication. Existing solutions often lack the specific features or scalability needed by these smaller groups.",
+  "id": "d66ecdf0-f15b-43bd-879b-4991aa324cdc",
+  "title": "Modern Task Management Application",
+  "summary": "A collaborative web app for small development teams to manage tasks with real-time updates, kanban boards, and mobile-responsive design.",
+  "intent": "Goal",
+  "context": "Background",
   "requirements": [
     {
       "id": "REQ-001",
-      "description": "User authentication via OAuth (Google, GitHub)",
+      "description": "User authentication with OAuth (Google, GitHub)",
       "priority": "must_have"
     },
     {
       "id": "REQ-002",
-      "description": "Real-time updates for task changes",
+      "description": "Real-time updates when team members make changes",
       "priority": "must_have"
     },
     {
       "id": "REQ-003",
-      "description": "Kanban board view with drag-and-drop functionality",
+      "description": "Kanban board view with drag-and-drop",
       "priority": "must_have"
     },
     {
       "id": "REQ-004",
-      "description": "Support for due dates, priorities, and labels on tasks",
+      "description": "Due dates, priorities, and labels for tasks",
       "priority": "must_have"
     },
     {
       "id": "REQ-005",
-      "description": "File attachment and commenting capabilities for tasks",
-      "priority": "must_have"
+      "description": "File attachments and comments on tasks",
+      "priority": "nice_to_have"
     },
     {
       "id": "REQ-006",
-      "description": "Mobile-responsive design for accessibility across devices",
+      "description": "Mobile-responsive design",
       "priority": "must_have"
     }
   ],
   "constraints": [
     {
       "id": "CON-001",
-      "description": "Frontend: React",
+      "description": "Frontend built with React",
       "type": "technical"
     },
     {
       "id": "CON-002",
-      "description": "Backend: Node.js",
+      "description": "Backend implemented with Node.js",
       "type": "technical"
     },
     {
       "id": "CON-003",
-      "description": "Database: PostgreSQL",
+      "description": "Database uses PostgreSQL",
       "type": "technical"
-    },
-    {
-      "id": "CON-004",
-      "description": "Target user base: Small development teams (5-20 people)",
-      "type": "business"
     }
   ],
   "success_criteria": [
     {
       "id": "SC-001",
-      "description": "MVP delivered within 4 weeks",
-      "measurable": true
-    },
-    {
-      "id": "SC-002",
-      "description": "User authentication successfully implemented with OAuth providers",
-      "measurable": true
-    },
-    {
-      "id": "SC-003",
-      "description": "Kanban board functionality allows for seamless task movement and organization",
-      "measurable": true
-    },
-    {
-      "id": "SC-004",
-      "description": "Application is accessible and functional on various mobile devices",
+      "description": "Core functionality implemented and tested within 4 weeks",
       "measurable": true
     }
   ],
@@ -84,5 +64,5 @@
   "domain": "Productivity",
   "timeframe": "4 weeks",
   "source_mode": "conversational",
-  "created_at": "2025-12-25T00:08:30.327Z"
+  "created_at": "2025-12-25T02:42:07.820Z"
 }
